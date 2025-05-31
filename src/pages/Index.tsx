@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, Music, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SpotifyPlayer } from '@/components/SpotifyPlayer';
+import { TodoList } from '@/components/TodoList';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 const Index = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isActive, setIsActive] = useState(false);
-  const [isWorkSession, setIsWorkSession] = useState(true);
   const [sessionType, setSessionType] = useState<'pomodoro' | 'short-break' | 'long-break'>('pomodoro');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showTodos, setShowTodos] = useState(false);
+  const [showSpotify, setShowSpotify] = useState(false);
 
   const sessionDurations = {
     pomodoro: 25 * 60,
@@ -56,24 +60,54 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background with gradient overlay */}
+      {/* Background with Japanese cherry blossom image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(rgba(139, 69, 190, 0.3), rgba(59, 130, 246, 0.4)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><rect width="1920" height="1080" fill="%23667eea"/><polygon points="0,1080 800,800 1200,900 1920,700 1920,1080" fill="%23764ba2" opacity="0.8"/><polygon points="0,1080 600,850 1000,950 1600,750 1920,800 1920,1080" fill="%235f27cd" opacity="0.6"/></svg>')`
+          backgroundImage: `linear-gradient(rgba(255, 182, 193, 0.2), rgba(255, 192, 203, 0.3)), url('https://images.unsplash.com/photo-1490818387583-1baba5e638af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`
         }}
       />
       
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-white text-3xl font-light tracking-wide mb-2">
-            focus timer
-          </h1>
-          <p className="text-white/80 text-sm font-light tracking-wide">
-            BY LOVABLE
-          </p>
+        {/* Header with todo and music buttons */}
+        <div className="flex items-center justify-between w-full max-w-4xl mb-8">
+          <Dialog open={showTodos} onOpenChange={setShowTodos}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="p-3 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-full transition-all duration-300 hover:scale-105"
+              >
+                <ListTodo className="w-6 h-6" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <TodoList />
+            </DialogContent>
+          </Dialog>
+
+          <div className="text-center">
+            <h1 className="text-white text-3xl font-light tracking-wide mb-2">
+              focus timer
+            </h1>
+            <p className="text-white/80 text-sm font-light tracking-wide">
+              BY LOVABLE
+            </p>
+          </div>
+
+          <Dialog open={showSpotify} onOpenChange={setShowSpotify}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="p-3 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-full transition-all duration-300 hover:scale-105"
+              >
+                <Music className="w-6 h-6" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <SpotifyPlayer />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Session type buttons */}
@@ -83,7 +117,7 @@ const Index = () => {
             onClick={() => switchSession('pomodoro')}
             className={`px-6 py-2 rounded-full border-2 transition-all duration-300 ${
               sessionType === 'pomodoro'
-                ? 'bg-white text-purple-900 border-white hover:bg-white/90'
+                ? 'bg-white text-pink-900 border-white hover:bg-white/90'
                 : 'bg-transparent text-white border-white/50 hover:border-white hover:bg-white/10'
             }`}
           >
@@ -94,7 +128,7 @@ const Index = () => {
             onClick={() => switchSession('short-break')}
             className={`px-6 py-2 rounded-full border-2 transition-all duration-300 ${
               sessionType === 'short-break'
-                ? 'bg-white text-purple-900 border-white hover:bg-white/90'
+                ? 'bg-white text-pink-900 border-white hover:bg-white/90'
                 : 'bg-transparent text-white border-white/50 hover:border-white hover:bg-white/10'
             }`}
           >
@@ -105,7 +139,7 @@ const Index = () => {
             onClick={() => switchSession('long-break')}
             className={`px-6 py-2 rounded-full border-2 transition-all duration-300 ${
               sessionType === 'long-break'
-                ? 'bg-white text-purple-900 border-white hover:bg-white/90'
+                ? 'bg-white text-pink-900 border-white hover:bg-white/90'
                 : 'bg-transparent text-white border-white/50 hover:border-white hover:bg-white/10'
             }`}
           >
@@ -124,7 +158,7 @@ const Index = () => {
         <div className="flex items-center gap-6">
           <Button
             onClick={toggleTimer}
-            className="px-8 py-3 bg-white text-purple-900 hover:bg-white/90 rounded-full text-lg font-medium transition-all duration-300 hover:scale-105"
+            className="px-8 py-3 bg-white text-pink-900 hover:bg-white/90 rounded-full text-lg font-medium transition-all duration-300 hover:scale-105"
           >
             {isActive ? (
               <>
