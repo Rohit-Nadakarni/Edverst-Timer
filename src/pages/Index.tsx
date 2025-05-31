@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Settings, Music, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -88,10 +87,10 @@ const Index = () => {
 
           <div className="text-center">
             <h1 className="text-white text-3xl font-light tracking-wide mb-2">
-              focus timer
+              edverst timer
             </h1>
             <p className="text-white/80 text-sm font-light tracking-wide">
-              BY LOVABLE
+              BY ROHIT NADAKARNI
             </p>
           </div>
 
