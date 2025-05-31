@@ -1,23 +1,38 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Settings, Music, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SpotifyPlayer } from '@/components/SpotifyPlayer';
 import { TodoList } from '@/components/TodoList';
+import { Settings as SettingsComponent } from '@/components/Settings';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { SettingsProvider, useSettings } from '@/contexts/SettingsContext';
+import { AnalyticsProvider, useAnalytics } from '@/contexts/AnalyticsContext';
 
-const Index = () => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+const TimerContent = () => {
+  const { pomodoroTime, shortBreakTime, longBreakTime } = useSettings();
+  const { addFocusSession } = useAnalytics();
+  
+  const [timeLeft, setTimeLeft] = useState(pomodoroTime * 60);
   const [isActive, setIsActive] = useState(false);
   const [sessionType, setSessionType] = useState<'pomodoro' | 'short-break' | 'long-break'>('pomodoro');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [showTodos, setShowTodos] = useState(false);
   const [showSpotify, setShowSpotify] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const sessionDurations = {
-    pomodoro: 25 * 60,
-    'short-break': 5 * 60,
-    'long-break': 15 * 60
+    pomodoro: pomodoroTime * 60,
+    'short-break': shortBreakTime * 60,
+    'long-break': longBreakTime * 60
   };
+
+  // Update timeLeft when settings change
+  useEffect(() => {
+    if (!isActive) {
+      setTimeLeft(sessionDurations[sessionType]);
+    }
+  }, [pomodoroTime, shortBreakTime, longBreakTime, sessionType, isActive]);
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
@@ -26,6 +41,12 @@ const Index = () => {
       }, 1000);
     } else if (timeLeft === 0) {
       setIsActive(false);
+      
+      // Add completed session to analytics if it was a pomodoro
+      if (sessionType === 'pomodoro') {
+        addFocusSession(pomodoroTime);
+      }
+      
       // Auto-switch to next session type could be added here
     }
 
@@ -34,7 +55,7 @@ const Index = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, sessionType, pomodoroTime, addFocusSession]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -180,12 +201,19 @@ const Index = () => {
             <RotateCcw className="w-6 h-6" />
           </Button>
           
-          <Button
-            variant="ghost"
-            className="p-3 text-white hover:bg-white/10 rounded-full transition-all duration-300 hover:scale-105"
-          >
-            <Settings className="w-6 h-6" />
-          </Button>
+          <Dialog open={showSettings} onOpenChange={setShowSettings}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="p-3 text-white hover:bg-white/10 rounded-full transition-all duration-300 hover:scale-105"
+              >
+                <Settings className="w-6 h-6" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <SettingsComponent />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Progress indicator */}
@@ -199,6 +227,16 @@ const Index = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <SettingsProvider>
+      <AnalyticsProvider>
+        <TimerContent />
+      </AnalyticsProvider>
+    </SettingsProvider>
   );
 };
 
